@@ -16,7 +16,7 @@
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GNU General Public License
  * @link      http://www.github.com/bojno/ Author's profile
  * @link      http://www.github.com/bojno/WT-Library-For-Nette-Framework/ Source repository of this file
- * @link      http://www.github.com/bojno/WT-Library-For-Nette-Framework/WT/Localization/Translator.php Source code of this file
+ * @link      http://www.github.com/bojno/WT-Library-For-Nette-Framework/blob/master/WT/Localization/Translator.php Source code of this file
  */
 namespace WT\Localization; use \Nette,
                                \Nette\DirectoryNotFoundException,
@@ -62,7 +62,7 @@ final class Translator implements Nette\Localization\ITranslator {
      * Constructs an object in establishing a new instance of this class.
      * 
      * @param  string $directory Path to the directory which contains binary-safe MO files (one at least) with translation data. Required.
-     * @param  string $primaryLocale According to this locale will be parsed messages which have not created translations. The locale must exist. Required.
+     * @param  string $primaryLocale According to this locale will be parsed messages which have not created translations yet. The locale must exist. Required.
      * @param  string $defaultLocale According to this locale will be translated messages which have created translations. The locale must exist. Required.
      * @param  \Nette\Caching\IStorage $storage Instance of cache storage where will be stored the loaded storable data. Required.
      * @param  array $dependencies In dependency to this array of dependencies are the loaded storable data stored in cache. Optional.
@@ -80,6 +80,9 @@ final class Translator implements Nette\Localization\ITranslator {
             // vyvolať chybovú výnimku ak konštruktor tejto triedy už bol zavolaný
             throw new Nette\InvalidStateException("Constructor of class '{$this}' has already been called.");
         
+        // ošetriť typ hodnoty danej premennej
+        $directory = (string) $directory;
+            
         // odstrániť adresárový separátor na pravej strane cesty
         $directory = rtrim($directory, "\x2F");
         $directory = rtrim($directory, "\x5C");
@@ -290,6 +293,10 @@ final class Translator implements Nette\Localization\ITranslator {
             fclose($fileResource); ###
         }
         
+        // ošetriť typy hodnôt daných premenných
+        $primaryLocale = (string) $primaryLocale;
+        $defaultLocale = (string) $defaultLocale;
+        
         if (!in_array($primaryLocale, $data['locales'])) ###
             
             // vyvolať chybovú výnimku ak lokalizácia neexistuje
@@ -397,6 +404,9 @@ final class Translator implements Nette\Localization\ITranslator {
      */
     function getCalculator($locale = null, $throws = true, $default = null) {
         
+        // ošetriť typ hodnoty danej premennej
+        $locale = (string) $locale;
+        
         if (!$locale)
             
             // nastaviť predvolenú lokalizáciu
@@ -466,6 +476,9 @@ final class Translator implements Nette\Localization\ITranslator {
      */
     function getProperties($locale = null, $throws = true, $default = null) {
         
+        // ošetriť typ hodnoty danej premennej
+        $locale = (string) $locale;
+        
         if (!$locale)
             
             // nastaviť predvolenú lokalizáciu
@@ -497,6 +510,10 @@ final class Translator implements Nette\Localization\ITranslator {
      */
     function getProperty($name, $locale = null, $throws = true, $default = null) {
 
+        // ošetriť typy hodnôt daných premenných
+        $name   = (string) $name;
+        $locale = (string) $locale;
+        
         if (!$this->hasProperty($name, $locale, $throws))
             
             // vrátiť predvolenú hodnotu
@@ -523,6 +540,10 @@ final class Translator implements Nette\Localization\ITranslator {
      */
     function getTranslation($message, $locale = null, $throws = true, $default = null) {
         
+        // ošetriť typy hodnôt daných premenných
+        $message = (string) $message;
+        $locale  = (string) $locale;
+        
         if (!$this->hasTranslation($message, $locale, $throws))
             
             // vrátiť predvolenú hodnotu
@@ -548,6 +569,9 @@ final class Translator implements Nette\Localization\ITranslator {
      */
     function getTranslations($locale = null, $throws = true, $default = null) {
 
+        // ošetriť typ hodnoty danej premennej
+        $locale = (string) $locale;
+        
         if (!$locale)
             
             // nastaviť predvolenú lokalizáciu
@@ -577,6 +601,9 @@ final class Translator implements Nette\Localization\ITranslator {
      */
     function hasLocale($locale, $throws = false) {
         
+        // ošetriť typ hodnoty danej premennej
+        $locale = (string) $locale;
+        
         if (in_array($locale, $this->getAllAvailableLocales(false)))
                 
             // vrátiť pravdivú hodnotu
@@ -604,6 +631,10 @@ final class Translator implements Nette\Localization\ITranslator {
      */
     function hasProperty($name, $locale = null, $throws = false) {
 
+        // ošetriť typy hodnôt daných premenných
+        $name   = (string) $name;
+        $locale = (string) $locale;
+        
         // získať vlastnosti podľa zadanej lokalizácie
         $properties = $this->getProperties($locale, $throws, array());
         
@@ -639,6 +670,10 @@ final class Translator implements Nette\Localization\ITranslator {
      */
     function hasTranslation($message, $locale = null, $throws = false) {
 
+        // ošetriť typy hodnôt daných premenných
+        $message = (string) $message;
+        $locale  = (string) $locale;
+        
         // získať preklady podľa zadanej lokalizácie
         $translations = $this->getTranslations($locale, $throws, array());
         
@@ -673,6 +708,9 @@ final class Translator implements Nette\Localization\ITranslator {
      */
     function hasTranslations($locale = null, $throws = false) {
 
+        // ošetriť typ hodnoty danej premennej
+        $locale = (string) $locale;
+        
         // vrátiť logickú hodnotu
         return (boolean) $this->getTranslations($locale, $throws, false);
     }
@@ -680,16 +718,20 @@ final class Translator implements Nette\Localization\ITranslator {
     
     
     /**
-     * Parses the text.
+     * Parses the text on singular or plural form.
      * 
-     * @param  string $text
-     * @param  string $locale
-     * @param  array|void $data
-     * @return array|string
+     * @param  string $text The text which you want to parse. Required.
+     * @param  string $locale According to this locale will be parsed the text. The locale must exist. Required.
+     * @param  array $data An array of the data which must contain info about plural form. Optional.
+     * @return string|array Returns either singular form as a string or plural form as an array.
      */
-    private function parseText($text, $locale, array $data = null) {
+    private function parseText($text, $locale, array $data) {
         
-        if (is_null($data))
+        // ošetriť typy hodnôt daných premenných
+        $text   = (string) $text;
+        $locale = (string) $locale;
+        
+        if (!$data)
          
             // nastaviť dáta z objektovej vlastnosti
             $data = $this->data;
@@ -710,7 +752,7 @@ final class Translator implements Nette\Localization\ITranslator {
         
         foreach ($matches as $matches) {
 
-            if (!preg_match("/^(?(?!\\|).|(?<=\\\\).)+(?:(?<!\\\\)\\|(?(?!\\|).|(?<=\\\\).)+){{$count}}$/AD", $matches[1])) ###
+            if (!preg_match("/^(?(?!\\|).|(?<=\\\\).)*(?:(?<!\\\\)\\|(?(?!\\|).|(?<=\\\\).)*){{$count}}$/AD", $matches[1])) ###
                     
                 // pokračovať ďalšou iteráciou
                 continue;
@@ -724,7 +766,7 @@ final class Translator implements Nette\Localization\ITranslator {
                 $text = array_key_exists($iteration, $texts) ? $texts[$iteration] : $text;
                 
                 // nahradiť útržok určitou časťou v danom texte
-                $texts[$iteration] = str_replace($matches[0], $part, $text);
+                $texts[$iteration] = str_replace($matches[0], $part, $text); ###
             }
         }
         
@@ -750,7 +792,7 @@ final class Translator implements Nette\Localization\ITranslator {
                 // pokračovať ďalšou iteráciou
                 continue;
                 
-            // nahradiť modifikované znakčy za obyčajné
+            // nahradiť modifikované značky za obyčajné
             $text = str_replace("\\[", "\x5B", $text);
             $text = str_replace("\\|", "\x7C", $text);
             $text = str_replace("\\]", "\x5D", $text);
@@ -759,7 +801,7 @@ final class Translator implements Nette\Localization\ITranslator {
         if (1 == count($texts))
         
             // získať prvého člena
-            $texts = $texts[0]; ###
+            $texts = array_shift($texts);
             
         // vrátiť jeden alebo viac textov
         return $texts;
@@ -822,6 +864,9 @@ final class Translator implements Nette\Localization\ITranslator {
      */
     function setDefaultLocale($locale, $throws = true) {
         
+        // ošetriť typ hodnoty danej premennej
+        $locale = (string) $locale;
+        
         if ($this->hasLocale($locale, $throws))
                 
             // nastaviť predvolenú lokalizáciu
@@ -843,6 +888,9 @@ final class Translator implements Nette\Localization\ITranslator {
      */
     function setPrimaryLocale($locale, $throws = true) {
         
+        // ošetriť typ hodnoty danej premennej
+        $locale = (string) $locale;
+        
         if ($this->hasLocale($locale, $throws))
                 
             // nastaviť primárnu lokalizáciu
@@ -855,71 +903,100 @@ final class Translator implements Nette\Localization\ITranslator {
     
     
     /**
+     * Translates the given message.
      * 
+     * @param  string $message The message which should be translated.
+     * @param  mixed $count Determines the plural form. A keyword ':count:' will be replaced with this number if the keyword is used.
+     * @return string Returns the translation if the message has one, original parsed message otherwise.
+     * @throws \Nette\InvalidArgumentException
      */
-    function translate($message, $count = null, $arguments = null, $locale = null) {
+    function translate($message, $count = null) {
         
-        // Treat value types of variables.
-        $message   = (string) $message;
-        $arguments = (array)  $arguments;
-        $locale    = (string) $locale;
+        // ošetriť typ hodnoty danej premennej
+        $message = (string) $message;
         
         if (!$message)
             
-            // Return an empty string.
+            // vrátiť prázdny reťazec
             return '';
         
-        if (!(is_null($count) || is_int($count) || is_float($count)))
+        if (!is_int($count) && !is_float($count))
             
-            // Treat value type of variable.
-            $count = (integer) $count;
+            // ošetriť typ hodnoty danej premennej
+            $count = null;
         
-        if (!$locale || !$this->hasLocale($locale))
-            
-            // Set default locale.
-            $locale = $this->getDefaultLocale();
+        // nastaviť predvolenú a primárnu lokalizáciu
+        $defaultLocale = $this->getDefaultLocale();
+        $primaryLocale = $this->getPrimaryLocale();
         
-        if ($this->hasTranslation($message, $locale))
+        if ($this->hasTranslation($message, $defaultLocale, false)) { ###
                 
-            // Get translation from data.
-            $translation = $this->getTranslation($message, $locale);
+            // získať požadovaný preklad
+            $translation = $this->getTranslation($message, $defaultLocale, true); ###
+            
+            // nastaviť hlavnú lokalizáciu
+            $locale = $defaultLocale;
+        }
+        elseif ($defaultLocale != $primaryLocale && $this->hasTranslation($message, $primaryLocale, false)) { ###
         
+            // získať požadovaný preklad
+            $translation = $this->getTranslation($message, $primaryLocale, true); ###
+            
+            // nastaviť hlavnú lokalizáciu
+            $locale = $primaryLocale;
+        }    
         else {
             
-            // Set primary locale.
-            $locale = $this->getPrimaryLocale();
+            // vyparsovať správu podľa primárnej lokalizácie
+            $translation = $this->parseText($message, $primaryLocale, $this->data); ###
             
-            // Parse message with primary locale.
-            $translation = $this->parseText($message, $locale);
+            // nastaviť hlavnú lokalizáciu
+            $locale = $primaryLocale;
         }
 
         if (is_numeric($count) && is_array($translation)) {
 
-            // Set plural calculator - function.
-            $calculator = $this->getCalculator($locale);
+            // získať kalkulačku množného čísla
+            $calculator = $this->getCalculator($locale, true); ### 
 
-            // Set index of plural form.
+            // vypočítať index
             $index = $calculator($count);
 
-            if (0 > $index || $this->data['plurals'][$locale]['count'] - 1 < $index)
+            if (0 > $index || $this->data['plurals'][$locale]['count'] <= $index) ###
 
                 //
                 throw new \Exception;
 
-            // Set translation according to index.
-            $translation = $translation[$index];
-            
-            if (false !== strpos($translation, ':count:'))
-                    
-                // Replace count keyword with real count.
-                $translation = str_replace(':count:', $count, $translation);
+            // nastaviť preklad podľa indexu
+            $translation = $translation[$index]; ### 
         }
         elseif (is_array($translation))
 
-            // Set first translation of the array.
+            // získať prvého člena
             $translation = array_shift($translation);
         
-        // Return translation text.
-        return false !== strpos($translation, "\x25") ? vsprintf($translation, $arguments) : $translation;
+        // ošetriť typ hodnoty danej premennej
+        $translation = (string) $translation;
+        
+        if (is_numeric($count) && false !== strpos($translation, ':count:'))
+                    
+            // nahradiť kľúčové slovo počtu zadaným číslom
+            $translation = str_replace(':count:', $count, $translation);
+        
+        if (func_num_args() > 2 && false !== strpos($translation, "\x25")) {
+            
+            // získať zadané hodnoty jednotlivých argumentov
+            $arguments = func_get_args();
+            
+            // odstrániť prvé dva argumenty
+            array_shift($arguments);
+            array_shift($arguments);
+            
+            // vrátiť preklad
+            return vsprintf($translation, $arguments);
+        }  
+            
+        // vrátiť preklad
+        return $translation;
     }
 }
