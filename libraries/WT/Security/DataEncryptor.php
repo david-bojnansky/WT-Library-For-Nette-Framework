@@ -16,7 +16,7 @@
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GNU General Public License
  * @link      http://www.github.com/bojno/ Author's profile.
  * @link      http://www.github.com/bojno/WT-Library-For-Nette-Framework/ Source repository of this file.
- * @link      http://www.github.com/bojno/WT-Library-For-Nette-Framework/blob/master/WT/Security/DataEncryptor.php Source code of this file.
+ * @link      http://www.github.com/bojno/WT-Library-For-Nette-Framework/blob/master/libraries/WT/Security/DataEncryptor.php Source code of this file.
  */
 namespace WT\Security; use \Nette\DirectoryNotFoundException,
                            \Nette\InvalidArgumentException, 
