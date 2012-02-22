@@ -13,10 +13,10 @@
  * 
  * @author    Dávid Bojnanský <david.bojnansky@gmail.com>
  * @copyright Copyright (c) 2012 Dávid Bojnanský
- * @license   http://www.gnu.org/licenses/gpl-3.0.html GNU General Public License
- * @link      http://www.github.com/bojno/ Author's profile.
- * @link      http://www.github.com/bojno/WT-Library-For-Nette-Framework/ Source repository of this file.
- * @link      http://www.github.com/bojno/WT-Library-For-Nette-Framework/blob/master/libraries/WT/Security/DataEncryptor.php Source code of this file.
+ * @license   http://gnu.org/licenses/gpl-3.0.html GNU General Public License
+ * @link      http://github.com/bojno/ Author's profile.
+ * @link      http://github.com/bojno/WT-Library-For-Nette-Framework/ Source repository of this file.
+ * @link      http://github.com/bojno/WT-Library-For-Nette-Framework/blob/master/libraries/WT/Security/DataEncryptor.php Source code of this file.
  */
 namespace WT\Security; use \Nette\DirectoryNotFoundException,
                            \Nette\InvalidArgumentException, 
@@ -26,7 +26,7 @@ namespace WT\Security; use \Nette\DirectoryNotFoundException,
 /**
  * Data encryptor based on the Hash and Mcrypt's engine.
  * 
- * @version 1.0.0 Release Candidate 1
+ * @version 1.0.0 Release Candidate 2
  */
 final class DataEncryptor {
 
@@ -58,26 +58,43 @@ final class DataEncryptor {
     
     
     /**
-     * Constructs an object in establishing a new instance of this class.
+     * The size of the initialization vector of the opened algorithm.
      * 
-     * Available options:
+     * @var integer
+     */
+    private $size;
+    
+    
+    
+    /**
+     * Indicates whether transfer the initialization vector with the encrypted data.
      * 
-     *     - string  $algo       see the parameter {@link http://php.net/hash-hmac           $algo}                 optional  'SHA512'
-     *     - string  $cipher     see the parameter {@link http://php.net/mcrypt-module-open  $algorithm}            optional  'MCRYPT_RIJNDAEL_256'
-     *     - string  $cipherDir  see the parameter {@link http://php.net/mcrypt-module-open  $algorithm_directory}  optional   null
-     *     - string  $key        see the parameter {@link http://php.net/mcrypt-generic-init $key}                  optional   null
-     *     - string  $mode       see the parameter {@link http://php.net/mcrypt-module-open  $mode}                 optional  'MCRYPT_MODE_ECB'
-     *     - string  $modeDir    see the parameter {@link http://php.net/mcrypt-module-open  $mode_directory}       optional   null
-     *     - string  $salt       see the parameter {@link http://php.net/hash-hmac           $key}                  optional  '8zrPlK5sKm9dLHCBMKQZUmtZQdThF...'
-     *     - string  $src        see the parameter {@link http://php.net/mcrypt-create-iv    $source}               optional  'MCRYPT_RAND'
+     * @var boolean
+     */
+    private $transfer;
+    
+    
+    
+    /**
+     * Constructs an object in establishing a new instance of this class. List of the possible options to configure security:
+     * 
+     *     string  $algo       see the parameter {@link http://php.net/hash-hmac           $algo}                 optional  'MD5'
+     *     string  $cipher     see the parameter {@link http://php.net/mcrypt-module-open  $algorithm}            optional  'MCRYPT_RIJNDAEL_256'
+     *     string  $cipherDir  see the parameter {@link http://php.net/mcrypt-module-open  $algorithm_directory}  optional   null
+     *     string  $key        see the parameter {@link http://php.net/mcrypt-generic-init $key}                  optional   null
+     *     string  $mode       see the parameter {@link http://php.net/mcrypt-module-open  $mode}                 optional  'MCRYPT_MODE_ECB'
+     *     string  $modeDir    see the parameter {@link http://php.net/mcrypt-module-open  $mode_directory}       optional   null
+     *     string  $salt       see the parameter {@link http://php.net/hash-hmac           $key}                  optional   null
+     *     string  $src        see the parameter {@link http://php.net/mcrypt-create-iv    $source}               optional  'MCRYPT_RAND'
      * 
      * See the Mcrypt's {@link http://php.net/mcrypt.ciphers ciphers} and predefined {@link http://php.net/mcrypt.constants constants}.
      * 
-     * @param  array $opts An array of the options to configure the current object instance. Optional.
-     * @throws \Nette\DirectoryNotFoundException
-     * @throws \Nette\InvalidArgumentException
-     * @throws \Nette\NotSupportedException
-     * @throws \Nette\UnexpectedValueException
+     * @param  array $opts An array of the options to configure security. Optional.
+     * @return WT\Security\DataEncryptor Returns an instance of this class always.
+     * @throws Nette\DirectoryNotFoundException
+     * @throws Nette\InvalidArgumentException
+     * @throws Nette\NotSupportedException
+     * @throws Nette\UnexpectedValueException
      */
     function __construct(array $opts = null) {
         
@@ -95,19 +112,16 @@ final class DataEncryptor {
             throw new NotSupportedException("PHP extension 'Mcrypt' is not loaded.");
         
         // nastaviť hodnoty v závislosti na zoskupení s možnosťami
-        $algo      = !empty($opts['algo'])      ? (string) $opts['algo']      : 'SHA512';
+        $algo      = !empty($opts['algo'])      ? (string) $opts['algo']      : 'MD5';
         $cipher    = !empty($opts['cipher'])    ? (string) $opts['cipher']    : 'MCRYPT_RIJNDAEL_256';
         $cipherDir = !empty($opts['cipherDir']) ? (string) $opts['cipherDir'] :  null;
         $key       = !empty($opts['key'])       ? (string) $opts['key']       :  null;
         $mode      = !empty($opts['mode'])      ? (string) $opts['mode']      : 'MCRYPT_MODE_ECB';
         $modeDir   = !empty($opts['modeDir'])   ? (string) $opts['modeDir']   :  null;
-        $salt      = !empty($opts['salt'])      ? (string) $opts['salt']      : '8zrPlK5sKm9dLHCBMKQZUmtZQdThF9thTHSt7fi87BEkm4kgySFE4qCi2ywnPJq1';
+        $salt      = !empty($opts['salt'])      ? (string) $opts['salt']      :  null;
         $src       = !empty($opts['src'])       ? (string) $opts['src']       : 'MCRYPT_RAND';
         
-        // získať zoznam dostupných algoritmov
-        $algos = hash_algos();
-        
-        if (!in_array(strtolower($algo), $algos))
+        if (!in_array(strtolower($algo), hash_algos()))
             
             // vyvolať chybovú výnimku, ak algoritmus neexistuje
             throw new InvalidArgumentException("Algorithm '{$algo}' does not exist.");
@@ -129,14 +143,10 @@ final class DataEncryptor {
             
         if (!$key)
             
-            for ($iteration = 1 ; 8 >= $iteration ; $iteration++) {
-            
-                // vytvoriť náhodné číslo
-                $number = mt_rand();
+            for ($iteration = 1 ; 8 >= $iteration ; $iteration++)
                 
                 // vytvoriť náhodný 64 znakový kľúč
-                $key .= sprintf('%08x', $number);
-            }
+                $key .= sprintf('%08x', mt_rand());
                 
         if (64 > strlen($key))
             
@@ -157,11 +167,6 @@ final class DataEncryptor {
             
             // vyvolať chybovú výnimku, ak zadaný adresár nie je čitateľný
             throw new DirectoryNotFoundException("Directory '{$modeDir}' is not readable."); // nie som si istý, či daný adresár musí byť čitateľný
-        
-        if (64 > strlen($salt))
-            
-            // vyvolať chybovú výnimku, ak soľ má menej ako 64 znakov
-            throw new InvalidArgumentException('Salt must not have less than 64 characters.');
             
         if (!defined($src))
             
@@ -176,28 +181,47 @@ final class DataEncryptor {
             // vyvolať chybovú výnimku, ak sa nepodarilo otvoriť šifrovací modul
             throw new UnexpectedValueException('Failed to open the encryption module.');
         
+        // získať veľkosť inicializačného vektora
+        $this->size = mcrypt_enc_get_iv_size($this->module); ###
+        
         // vytvoriť inicializačný vektor
-        $this->iv = mcrypt_create_iv(mcrypt_enc_get_iv_size($this->module), constant($src));
+        $this->iv = @mcrypt_create_iv($this->size, constant($src));
+        
+        if (false === $this->iv)
+            
+            // vyvolať chybovú výnimku, ak sa nepodarilo vytvoriť inicializačný vektor
+            throw new UnexpectedValueException('Failed to create the initialization vector.');
+        
+        // nastaviť logickú hodnotu, či prenášať inicializačný vektor
+        $this->transfer = 'MCRYPT_MODE_ECB' != $mode;
         
         // vytvoriť unikátny kľúč pre šifrovanie
-        $this->key = substr(hash_hmac($algo, $key, $salt), 0, mcrypt_enc_get_key_size($this->module));
+        $this->key = substr(hash_hmac($algo, $key, $salt), 0, mcrypt_enc_get_key_size($this->module)); ###
+        
+        // vrátiť inštanciu tejto triedy
+        return $this;
     }
     
     
     
     /**
      * Destructs the current object instance and closes the opened encryption module.
+     * 
+     * @return WT\Security\DataEncryptor Returns an instance of this class always.
      */
     function __destruct() {
 
         if (is_resource($this->module)) {
 
             // zatvoriť otvorený šifrovací modul
-            mcrypt_module_close($this->module);
+            mcrypt_module_close($this->module); ###
             
             // uvoľniť hodnoty objektových vlastností
-            $this->iv = $this->key = $this->module = null;
+            $this->iv = $this->key = $this->module = $this->size = $this->transfer = null;
         }
+        
+        // vrátiť inštanciu tejto triedy
+        return $this;
     }
     
     
@@ -220,32 +244,43 @@ final class DataEncryptor {
      * 
      * @param  string $data The encrypted data which you want to decrypt. Required.
      * @param  boolean $decode Indicates whether decode the encrypted data from Base64 string before the decryption. Optional.
-     * @param  string $key The initialization key. If it is empty, then is used the default initialization key. Optional.
-     * @return string Returns the decrypted data always.
-     * @throws \Nette\InvalidArgumentException
+     * @param  boolean $strict The second parameter of the Base64 decode function. Optional.
+     * @return mixed Returns the decrypted data if the specified data are not empty and they are bigger than size of the initialization vector, NULL otherwise.
      */
-    function decrypt($data, $decode = true, $key = null) {
+    function decrypt($data, $decode = true, $strict = false) {
 
         // ošetriť typy hodnôt daných premenných
-        $data = (string) $data;
-        $key  = (string) $key;
+        $data   = (string)  $data;
+        $strict = (boolean) $strict;
         
-        if ($key && mcrypt_enc_get_key_size($this->module) < strlen($key))
+        // dekódovať dáta pred dešifrovaním
+        $data = $decode ? base64_decode($data, $strict) : $data;
+        
+        if (null == $data || $this->transfer && $this->size >= strlen($data))
             
-            // vyvolať chybovú výnimku, ak kľúč má viac ako povolený počet znakov
-            throw new InvalidArgumentException(sprintf('Key must not have more than %d characters.', mcrypt_enc_get_key_size($this->module)));
+            // vrátiť prázdnu hodnotu
+            return;
+        
+        // nastaviť spoločný inicializačný vektor
+        $iv = $this->iv;
+        
+        if ($this->transfer) {
             
-        // nastaviť kľúč pre inicializáciu šifrovacieho modulu
-        $key = $key ?: $this->getKey();
+            // získať inicializačný vektor zo zadaných dát
+            $iv = substr($data, 0, $this->size);
+            
+            // získať dáta na dešifrovanie zo zadaných dát
+            $data = substr($data, $this->size);
+        }
         
         // inicializovať otvorený šifrovací modul
-        mcrypt_generic_init($this->module, $key, $this->iv);
+        mcrypt_generic_init($this->module, $this->getKey(), $iv); ###
         
         // dešifrovať požadované dáta
-        $data = mdecrypt_generic($this->module, $decode ? base64_decode($data) : $data);
+        $data = mdecrypt_generic($this->module, $data); ###
         
         // deinicializovať otvorený šifrovací modul
-        mcrypt_generic_deinit($this->module);
+        mcrypt_generic_deinit($this->module); ###
         
         // vrátiť dešifrované dáta
         return rtrim($data, "\0");
@@ -258,32 +293,26 @@ final class DataEncryptor {
      * 
      * @param  string $data The (decrypted) data which you want to encrypt. Required.
      * @param  boolean $encode Indicates whether encode the (decrypted) data to Base64 string after the encryption. Optional.
-     * @param  string $key The initialization key. If it is empty, then is used the default initialization key. Optional.
-     * @return string Returns the encrypted data always.
-     * @throws \Nette\InvalidArgumentException
+     * @return mixed Returns the encrypted data if the specified data are not empty, NULL otherwise.
      */
-    function encrypt($data, $encode = true, $key = null) {
+    function encrypt($data, $encode = true) {
         
-        // ošetriť typy hodnôt daných premenných
+        // ošetriť typ hodnoty danej premennej
         $data = (string) $data;
-        $key  = (string) $key;
-        
-        if ($key && mcrypt_enc_get_key_size($this->module) < strlen($key))
+
+        if (null == $data)
             
-            // vyvolať chybovú výnimku, ak kľúč má viac ako povolený počet znakov
-            throw new InvalidArgumentException(sprintf('Key must not have more than %d characters.', mcrypt_enc_get_key_size($this->module)));
-            
-        // nastaviť kľúč pre inicializáciu šifrovacieho modulu
-        $key = $key ?: $this->getKey();
+            // vrátiť prázdnu hodnotu
+            return;
         
         // inicializovať otvorený šifrovací modul
-        mcrypt_generic_init($this->module, $key, $this->iv);
+        mcrypt_generic_init($this->module, $this->getKey(), $this->iv); ###
         
         // zašifrovať požadované dáta
-        $data = mcrypt_generic($this->module, $data);
+        $data = ($this->transfer ? $this->iv : null) . mcrypt_generic($this->module, $data); ###
         
         // deinicializovať otvorený šifrovací modul
-        mcrypt_generic_deinit($this->module);
+        mcrypt_generic_deinit($this->module); ###
 
         // vrátiť zašifrované dáta
         return $encode ? base64_encode($data) : $data;
@@ -292,9 +321,9 @@ final class DataEncryptor {
     
     
     /**
-     * Gets an unique key for the encryption.
+     * Gets an unique key for the encryption. You should keep this key in secret.
      * 
-     * @return string Returns an unique key for the encription always.
+     * @return string Returns an unique key for the encryption always.
      */
     function getKey() {
         
